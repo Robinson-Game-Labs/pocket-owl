@@ -1,6 +1,6 @@
 // Pocket Owl offline helper: keeps the app working without internet.
 // Bump VERSION whenever you change the app so phones pick up the update.
-const VERSION = "pocket-owl-v1";
+const VERSION = "pocket-owl-v4";
 const CORE = [
   "./",
   "./index.html",
