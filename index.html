@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pocket Owl</title>
+<meta name="theme-color" content="#8ccbef">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pocket Owl">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { background: var(--page); -webkit-text-size-adjust: 100%; }
+body { margin: 0; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Layout: one rounded "device" card — header (name, mood), sky scene with the owl and speech bubble, need meters, a row of care buttons, and bottom sheets for snacks and wardrobe. */
+:root {
+  --page: #eaf5fc;
+  --card: #ffffff;
+  --ink: #23374c;
+  --muted: #5d7287;
+  --line: #d6e8f4;
+  --sky: #bfe3f7;
+  --sky-deep: #8ccbef;
+  --cloud: #ffffff;
+  --butter: #ffe68f;
+  --butter-deep: #f4c94a;
+  --night: #233b5e;
+  --night-deep: #162842;
+  --low: #f39a7e;
+  --owl: #f8d96f;
+  --owl-wing: #e9bf4f;
+  --owl-belly: #fff6d6;
+  --owl-line: #d9a83a;
+  --beak: #f39b4a;
+  --blush: #ffb2a6;
+  --eye: #2a3446;
+  --display: "Sniglet", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body: "Nunito", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --page: #0f1d30; --card: #172a43; --ink: #eaf4fb; --muted: #a3bad0; --line: #284262;
+  --sky: #3a6f9e; --sky-deep: #2b5a85; --cloud: #c9e3f5; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --page: #0f1d30; --card: #172a43; --ink: #eaf4fb; --muted: #a3bad0; --line: #284262;
+  --sky: #3a6f9e; --sky-deep: #2b5a85; --cloud: #c9e3f5; color-scheme: dark;
+}
+body {
+  background: var(--page); color: var(--ink); font-family: var(--body); font-size: 15px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 32px;
+}
+.device {
+  max-width: 440px; margin: 0 auto; background: var(--card);
+  border: 2px solid var(--line); border-radius: 32px;
+  padding: 16px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden;
+}
+header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 4px 0; }
+.who { display: flex; flex-direction: column; min-width: 0; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 1.8rem; line-height: 1.05; margin: 0; text-wrap: balance; }
+.age { color: var(--muted); font-size: .85rem; font-weight: 700; }
+.mood {
+  flex: none; font-weight: 800; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase;
+  padding: 6px 12px; border-radius: 999px; background: var(--butter); color: #4a3a08;
+}
+.mood.sad { background: var(--low); color: #4a1d10; }
+.mood.sleep { background: var(--night); color: #e8f1ff; }
+
+.scene {
+  position: relative; aspect-ratio: 1 / 0.9; max-width: 100%; border-radius: 24px; overflow: hidden;
+  background: linear-gradient(180deg, var(--sky-deep), var(--sky) 70%);
+  transition: background .8s ease;
+  user-select: none; -webkit-user-select: none;
+}
+.scene.night { background: linear-gradient(180deg, var(--night-deep), var(--night) 75%); }
+.cloud { position: absolute; background: var(--cloud); border-radius: 999px; opacity: .85; transition: opacity .8s; }
+.cloud::before, .cloud::after { content: ""; position: absolute; background: inherit; border-radius: 50%; }
+.cloud::before { width: 55%; height: 160%; left: 15%; bottom: 20%; }
+.cloud::after { width: 40%; height: 130%; right: 12%; bottom: 25%; }
+.c1 { width: 80px; height: 20px; top: 14%; left: 8%; animation: drift 30s linear infinite alternate; }
+.c2 { width: 60px; height: 16px; top: 28%; right: 6%; animation: drift 24s linear infinite alternate-reverse; }
+.night .cloud { opacity: .12; }
+@keyframes drift { to { transform: translateX(30px); } }
+.stars { position: absolute; inset: 0; opacity: 0; transition: opacity .8s; }
+.night .stars { opacity: 1; }
+.stars i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--butter); animation: twinkle 2.4s ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: .3; } }
+.moon { position: absolute; top: 9%; right: 10%; width: 34px; height: 34px; border-radius: 50%; box-shadow: -8px 4px 0 0 var(--butter); transform: rotate(-20deg); opacity: 0; transition: opacity .8s; }
+.night .moon { opacity: 1; }
+.ground { position: absolute; left: -10%; right: -10%; bottom: -30%; height: 46%; border-radius: 50%; background: var(--butter); opacity: .55; }
+.night .ground { opacity: .18; }
+
+.pet {
+  position: absolute; left: 50%; bottom: 6%; width: 56%; max-width: 230px; transform: translateX(-50%);
+  background: none; border: 0; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.pet:focus-visible { outline: 3px solid var(--butter-deep); outline-offset: 4px; border-radius: 24px; }
+.pet svg { width: 100%; display: block; overflow: visible; }
+.bob { animation: bob 3s ease-in-out infinite; transform-origin: 100px 190px; }
+.night .bob { animation: breathe 4s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-5px); } }
+@keyframes breathe { 50% { transform: scale(1.025, .985); } }
+.wiggle { animation: wiggle .55s ease; }
+@keyframes wiggle { 25% { transform: rotate(-6deg); } 60% { transform: rotate(5deg); } }
+.wing { transition: transform .25s ease; }
+.flap .wl { transform: rotate(-22deg); } .flap .wr { transform: rotate(22deg); }
+.wl { transform-origin: 50px 110px; } .wr { transform-origin: 150px 110px; }
+
+.egg { animation: wobble 2.4s ease-in-out infinite; transform-origin: 100px 180px; }
+@keyframes wobble { 0%,70%,100% { transform: rotate(0); } 78% { transform: rotate(-7deg); } 86% { transform: rotate(6deg); } 93% { transform: rotate(-3deg); } }
+
+.bubble {
+  position: absolute; left: 50%; top: 6%; transform: translateX(-50%);
+  width: max-content; max-width: 82%; background: var(--card); color: var(--ink);
+  border: 2px solid var(--line); border-radius: 18px; padding: 10px 14px;
+  font-weight: 800; font-size: .95rem; line-height: 1.35; text-align: center; text-wrap: balance;
+  z-index: 3;
+}
+.bubble::after { content: ""; position: absolute; left: 50%; bottom: -9px; width: 14px; height: 14px; background: var(--card); border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); transform: translateX(-50%) rotate(45deg); }
+.bubble.fresh { animation: popin .3s ease; }
+@keyframes popin { from { transform: translateX(-50%) scale(.85); opacity: .3; } }
+
+.float { position: absolute; pointer-events: none; font-weight: 800; font-size: 22px; z-index: 4; }
+.heart { width: 22px; height: 22px; }
+.zzz { position: absolute; font-family: var(--display); font-weight: 800; color: var(--butter); font-size: 1.4rem; pointer-events: none; }
+
+/* meters */
+.meters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; padding: 0 4px; }
+.meter { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.meter .top { display: flex; justify-content: space-between; font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.meter .top b { font-variant-numeric: tabular-nums; color: var(--ink); letter-spacing: 0; }
+.bar { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: inherit; background: var(--butter-deep); transition: width .6s ease, background .3s; }
+.bar span.low { background: var(--low); }
+
+/* actions */
+.actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.act {
+  font-family: var(--body); font-weight: 800; font-size: .78rem; color: var(--ink);
+  background: var(--page); border: 2px solid var(--line); border-radius: 18px;
+  padding: 10px 2px 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: transform .12s, border-color .2s;
+}
+.act svg { width: 26px; height: 26px; }
+.act:hover { border-color: var(--butter-deep); }
+.act:active { transform: scale(.94); }
+.act:focus-visible, .chip:focus-visible, .sheet button:focus-visible { outline: 3px solid var(--butter-deep); outline-offset: 2px; }
+.act:disabled { opacity: .4; cursor: default; }
+.act.on { background: var(--night); color: #eaf2ff; border-color: var(--night); }
+
+/* sheets */
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 10;
+  background: var(--card); border-top: 2px solid var(--line); border-radius: 26px 26px 0 0;
+  padding: 16px 16px 20px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 -10px 30px rgba(20,40,70,.15);
+  animation: up .25s ease;
+}
+@keyframes up { from { transform: translateY(40%); opacity: 0; } }
+.sheet h2 { margin: 0; font-family: var(--display); font-size: 1.25rem; font-weight: 800; }
+.sheet .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.close { font: inherit; font-weight: 800; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 6px 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.chip {
+  font-family: var(--body); text-align: left; cursor: pointer; color: var(--ink);
+  background: var(--page); border: 2px solid var(--line); border-radius: 16px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.chip b { font-size: .95rem; }
+.chip small { color: var(--muted); font-weight: 700; font-size: .78rem; }
+.chip.sel { border-color: var(--butter-deep); background: var(--butter); color: #3d3108; }
+.chip.sel small { color: #6b5a1d; }
+
+/* game */
+.game { position: absolute; inset: 0; z-index: 5; }
+.gamehud { position: absolute; top: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; z-index: 6; }
+.gamehud span { background: var(--card); border-radius: 999px; padding: 4px 10px; border: 2px solid var(--line); }
+.star { position: absolute; top: -40px; width: 42px; height: 42px; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.star svg { width: 100%; height: 100%; }
+
+.foot { text-align: center; color: var(--muted); font-size: .8rem; font-weight: 700; margin: 0; }
+
+@media (max-width: 380px) { .act span { font-size: .7rem; } h1 { font-size: 1.5rem; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="device" id="device">
+  <header>
+    <div class="who">
+      <h1 id="name">A mystery egg</h1>
+      <span class="age" id="age">Waiting to hatch</span>
+    </div>
+    <span class="mood" id="mood">Snug</span>
+  </header>
+
+  <div class="scene" id="scene">
+    <div class="stars" id="stars"></div>
+    <div class="moon"></div>
+    <div class="cloud c1"></div><div class="cloud c2"></div>
+    <div class="ground"></div>
+    <div class="bubble" id="bubble">Tap me! Something's wiggling in here...</div>
+    <button class="pet" id="pet" type="button" aria-label="Your owl"></button>
+  </div>
+
+  <div class="meters" id="meters">
+    <div class="meter"><div class="top">Tummy <b id="v-full">80</b></div><div class="bar"><span id="b-full"></span></div></div>
+    <div class="meter"><div class="top">Love <b id="v-love">80</b></div><div class="bar"><span id="b-love"></span></div></div>
+    <div class="meter"><div class="top">Fun <b id="v-fun">80</b></div><div class="bar"><span id="b-fun"></span></div></div>
+    <div class="meter"><div class="top">Energy <b id="v-energy">80</b></div><div class="bar"><span id="b-energy"></span></div></div>
+  </div>
+
+  <div class="actions" id="actions">
+    <button class="act" id="a-feed" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9 7c0-2 2-2 2-4M14 7c0-2 2-2 2-4"/></svg><span>Feed</span></button>
+    <button class="act" id="a-pet" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>Cuddle</span></button>
+    <button class="act" id="a-play" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span>Play</span></button>
+    <button class="act" id="a-sleep" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span id="sleepLabel">Tuck in</span></button>
+    <button class="act" id="a-dress" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 18h18M6 18l2-9h8l2 9M9 9c0-3 1.5-5 3-6 1.5 1 3 3 3 6"/></svg><span>Dress</span></button>
+  </div>
+
+  <p class="foot" id="foot">Your owl lives on this phone and remembers you.</p>
+</div>
+
+<script>
+/* ---------- data ---------- */
+const NAMES = ["Pip","Juniper","Waffles","Clover","Pebble","Marigold","Button","Toffee","Hazel","Sunny","Noodle","Bramble","Dot","Puddin","Wren","Muffin"];
+const SNACKS = [
+  { id:"berries", name:"Blueberries", note:"A little bowl", full:18, love:2, say:"Blueberries! You know me so well." },
+  { id:"muffin",  name:"Moth muffin", note:"Owl favorite", full:30, love:4, say:"Mmm, crunchy and fluffy. Thank you!" },
+  { id:"toast",   name:"Honey toast", note:"Sticky and warm", full:24, love:3, fun:4, say:"It's all over my beak and I don't care." },
+  { id:"cocoa",   name:"Warm cocoa", note:"Makes it sleepy", full:12, love:6, energy:-6, say:"So cozy... sip with me?" }
+];
+const OUTFITS = [
+  { id:"none",   name:"Just feathers", note:"Au naturel" },
+  { id:"beanie", name:"Yellow beanie", note:"Snug ears" },
+  { id:"scarf",  name:"Striped scarf", note:"Blue and butter" },
+  { id:"bow",    name:"Big bow", note:"Very fancy" },
+  { id:"crown",  name:"Flower crown", note:"Spring owl" },
+  { id:"witch",  name:"Witch hat", note:"Happy Halloween" }
+];
+const LINES = {
+  idle: ["Hi hi hi. I like when you're here.","Can you stay a little longer?","I saved you a spot on my branch.","You're my favorite person. Don't tell the moon.","I practiced my hoot for you. Hoo!","Are you okay today? I can sit with you.","Just checking you're still there.","Whatever you're doing, you're doing great."],
+  pet: ["Ooh, again please!","That's the spot.","I love you so much it makes my feathers fluffy.","Hehe. Don't stop.","Best. Cuddles. Ever.","My heart goes hoo-hoo."],
+  hungry: ["My tummy is making owl noises.","Is it snack time? It feels like snack time."],
+  lonely: ["I missed you. Can we cuddle?","Did you forget about me? It's okay, you're here now."],
+  bored: ["I'm a little bored. Wanna catch stars with me?"],
+  tired: ["My eyes keep getting heavy...","Could you tuck me in soon?"],
+  full: ["I'm so full I might roll away.","No more, I'll pop! Cuddles instead?"],
+  back: ["You came back! I waited by the window the whole time.","There you are! I kept your spot warm.","Yay, you're home!"]
+};
+
+/* ---------- state ---------- */
+const KEY = "pocket-owl-v1";
+const fresh = () => ({ hatched:false, name:null, born:null, taps:0, full:80, love:80, fun:80, energy:80, outfit:"none", asleep:false, last:Date.now() });
+let S = fresh();
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+const clamp = v => Math.max(5, Math.min(100, v));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const $ = id => document.getElementById(id);
+
+/* cozy decay, points per hour; floors at 5 so nothing ever goes wrong */
+function decay(now) {
+  if (!S.hatched) { S.last = now; return 0; }
+  const h = Math.max(0, (now - S.last) / 3600000);
+  if (S.asleep) {
+    S.energy = clamp(S.energy + 30 * h); S.full = clamp(S.full - 2 * h);
+  } else {
+    S.full = clamp(S.full - 6 * h); S.love = clamp(S.love - 7 * h);
+    S.fun = clamp(S.fun - 5 * h); S.energy = clamp(S.energy - 4 * h);
+  }
+  S.last = now;
+  return h;
+}
+
+/* ---------- drawing ---------- */
+function eyesSVG(kind) {
+  if (kind === "happy") return `<path d="M64 102 q14 -16 28 0" stroke="var(--eye)" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M108 102 q14 -16 28 0" stroke="var(--eye)" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+  if (kind === "sleep") return `<path d="M64 100 q14 10 28 0" stroke="var(--eye)" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M108 100 q14 10 28 0" stroke="var(--eye)" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  const sad = kind === "sad";
+  const eye = (cx) => `<circle cx="${cx}" cy="100" r="21" fill="#fff"/><g class="blink" style="transform-origin:${cx}px 100px"><circle cx="${cx}" cy="${sad?104:101}" r="12" fill="var(--eye)"/><circle cx="${cx+4}" cy="${sad?99:96}" r="4" fill="#fff"/></g>`;
+  const brows = sad ? `<path d="M62 78 l22 6" stroke="var(--owl-line)" stroke-width="5" stroke-linecap="round"/><path d="M138 78 l-22 6" stroke="var(--owl-line)" stroke-width="5" stroke-linecap="round"/>` : "";
+  return eye(78) + eye(122) + brows;
+}
+function outfitSVG(id) {
+  switch (id) {
+    case "beanie": return `<path d="M52 66 q48 -62 96 0 z" fill="var(--butter-deep)"/><rect x="48" y="58" width="104" height="14" rx="7" fill="var(--sky-deep)"/><circle cx="100" cy="20" r="10" fill="var(--sky-deep)"/>`;
+    case "scarf": return `<path d="M44 140 q56 22 112 0 l0 14 q-56 22 -112 0 z" fill="var(--sky-deep)"/><path d="M64 146 l0 16 M84 150 l0 16 M116 150 l0 16 M136 146 l0 16" stroke="var(--butter)" stroke-width="7"/><path d="M130 152 l8 34 l14 -4 l-6 -32 z" fill="var(--sky-deep)"/><path d="M136 166 l12 -3" stroke="var(--butter)" stroke-width="6"/>`;
+    case "bow": return `<g transform="translate(138 52) rotate(18)"><path d="M0 0 l-26 -14 l0 28 z" fill="#ff9fb4"/><path d="M0 0 l26 -14 l0 28 z" fill="#ff9fb4"/><circle r="7" fill="#ff7f9c"/></g>`;
+    case "crown": return [[58,60,"#ff9fb4"],[76,48,"#fff"],[100,44,"var(--sky-deep)"],[124,48,"#fff"],[142,60,"#ff9fb4"]].map(([x,y,c]) => `<g transform="translate(${x} ${y})"><circle r="9" fill="${c}"/><circle r="4" fill="var(--butter-deep)"/></g>`).join("") + `<path d="M56 64 q44 -24 88 0" stroke="#7cbf7a" stroke-width="4" fill="none"/>`;
+    case "witch": return `<path d="M66 62 L112 -6 L138 62 z" fill="#5a4a8a"/><path d="M112 -6 q12 4 18 14" stroke="#5a4a8a" stroke-width="8" fill="none" stroke-linecap="round"/><rect x="72" y="46" width="62" height="10" fill="var(--butter-deep)"/><ellipse cx="100" cy="62" rx="58" ry="10" fill="#4a3c78"/>`;
+    default: return "";
+  }
+}
+function owlSVG(kind) {
+  return `<svg viewBox="0 0 200 200" aria-hidden="true"><g class="bob" id="owlbody">
+    <path d="M56 70 L50 30 L82 56 z" fill="var(--owl-wing)"/><path d="M144 70 L150 30 L118 56 z" fill="var(--owl-wing)"/>
+    <ellipse cx="100" cy="118" rx="64" ry="70" fill="var(--owl)"/>
+    <g class="wing wl"><ellipse cx="44" cy="128" rx="16" ry="34" fill="var(--owl-wing)"/></g>
+    <g class="wing wr"><ellipse cx="156" cy="128" rx="16" ry="34" fill="var(--owl-wing)"/></g>
+    <ellipse cx="100" cy="146" rx="40" ry="38" fill="var(--owl-belly)"/>
+    <path d="M80 138 q5 6 10 0 q5 6 10 0 q5 6 10 0 q5 6 10 0 M86 154 q5 6 10 0 q5 6 10 0 q5 6 10 0" stroke="var(--owl-line)" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".55"/>
+    ${eyesSVG(kind)}
+    <path d="M92 116 L108 116 L100 130 z" fill="var(--beak)"/>
+    <ellipse cx="60" cy="120" rx="9" ry="6" fill="var(--blush)" opacity=".8"/><ellipse cx="140" cy="120" rx="9" ry="6" fill="var(--blush)" opacity=".8"/>
+    <path d="M82 186 l-6 8 M88 187 l0 9 M94 186 l6 8 M106 186 l-6 8 M112 187 l0 9 M118 186 l6 8" stroke="var(--beak)" stroke-width="4" stroke-linecap="round"/>
+    ${outfitSVG(S.outfit)}
+  </g></svg>`;
+}
+function eggSVG() {
+  const c = S.taps;
+  const crack = c >= 1 ? `<path d="M70 110 l14 -8 l10 10 l12 -12 l10 8 l14 -6" stroke="var(--owl-line)" stroke-width="4" fill="none" stroke-linejoin="round"/>` : "";
+  const crack2 = c >= 2 ? `<path d="M64 132 l18 6 l8 -10 l16 12 l14 -8 l18 4" stroke="var(--owl-line)" stroke-width="4" fill="none" stroke-linejoin="round"/>` : "";
+  return `<svg viewBox="0 0 200 200" aria-hidden="true"><g class="egg">
+    <ellipse cx="100" cy="118" rx="56" ry="72" fill="var(--owl-belly)"/>
+    <circle cx="78" cy="88" r="9" fill="var(--sky-deep)"/><circle cx="122" cy="76" r="6" fill="var(--butter-deep)"/>
+    <circle cx="126" cy="150" r="10" fill="var(--sky-deep)"/><circle cx="82" cy="160" r="6" fill="var(--butter-deep)"/>
+    ${crack}${crack2}</g></svg>`;
+}
+
+/* ---------- ui ---------- */
+let expression = null, exprTimer = null;
+function mood() {
+  if (!S.hatched) return ["Snug", ""];
+  if (S.asleep) return ["Dreaming", "sleep"];
+  const low = Math.min(S.full, S.love, S.fun, S.energy);
+  if (low < 25) {
+    if (S.love === low) return ["Missing you", "sad"];
+    if (S.full === low) return ["Peckish", "sad"];
+    if (S.energy === low) return ["Sleepy", "sad"];
+    return ["Bored", "sad"];
+  }
+  const avg = (S.full + S.love + S.fun + S.energy) / 4;
+  return avg > 75 ? ["Overjoyed", ""] : ["Content", ""];
+}
+function faceKind() {
+  if (S.asleep) return "sleep";
+  if (expression) return expression;
+  return Math.min(S.full, S.love, S.fun, S.energy) < 25 ? "sad" : "open";
+}
+function drawPet() { $("pet").innerHTML = S.hatched ? owlSVG(faceKind()) : eggSVG(); }
+function ageText() {
+  if (!S.hatched) return "Waiting to hatch";
+  const m = (Date.now() - S.born) / 60000;
+  if (m < 2) return "Hatched just now";
+  if (m < 60) return `Hatched ${Math.round(m)} minutes ago`;
+  if (m < 1440) { const h = Math.round(m/60); return `Hatched ${h} hour${h>1?"s":""} ago`; }
+  const d = Math.floor(m/1440); return `${d} day${d>1?"s":""} old`;
+}
+function render() {
+  $("name").textContent = S.hatched ? S.name : "A mystery egg";
+  $("age").textContent = ageText();
+  const [m, cls] = mood(); const md = $("mood"); md.textContent = m; md.className = "mood " + cls;
+  for (const k of ["full","love","fun","energy"]) {
+    const v = Math.round(S[k]); $("v-"+k).textContent = v;
+    const b = $("b-"+k); b.style.width = v + "%"; b.classList.toggle("low", v < 25);
+  }
+  $("scene").classList.toggle("night", S.asleep);
+  const off = !S.hatched || S.asleep;
+  ["a-feed","a-pet","a-play","a-dress"].forEach(id => $(id).disabled = off);
+  $("a-sleep").disabled = !S.hatched;
+  $("a-sleep").classList.toggle("on", S.asleep);
+  $("sleepLabel").textContent = S.asleep ? "Wake up" : "Tuck in";
+  drawPet();
+}
+function say(t) { const b = $("bubble"); b.textContent = t; b.hidden = false; b.classList.remove("fresh"); void b.offsetWidth; b.classList.add("fresh"); }
+function express(k, ms = 1600) { expression = k; drawPet(); clearTimeout(exprTimer); exprTimer = setTimeout(() => { expression = null; drawPet(); }, ms); }
+function flap() { const g = $("pet").querySelector("svg"); if (!g) return; g.classList.add("flap"); setTimeout(() => g.classList.remove("flap"), 500); }
+function floatUp(svgOrText, x, y) {
+  const el = document.createElement("div"); el.className = "float"; el.innerHTML = svgOrText;
+  el.style.left = x + "px"; el.style.top = y + "px"; $("scene").appendChild(el);
+  el.animate([{ transform:"translate(-50%,0) scale(.6)", opacity:1 }, { transform:`translate(${-50 + (Math.random()*60-30)}%,-90px) scale(1.1)`, opacity:0 }], { duration: 1100, easing:"ease-out" }).onfinish = () => el.remove();
+}
+const HEART = `<svg class="heart" viewBox="0 0 24 24"><path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z" fill="#ff8fa8"/></svg>`;
+function hearts(n = 3) {
+  const r = $("pet").getBoundingClientRect(), s = $("scene").getBoundingClientRect();
+  for (let i = 0; i < n; i++) setTimeout(() => floatUp(HEART, r.left - s.left + r.width * (0.3 + Math.random()*0.4), r.top - s.top + r.height * 0.3), i * 120);
+}
+
+/* ---------- actions ---------- */
+function hatch() {
+  S.taps++;
+  $("pet").querySelector(".egg")?.animate([{transform:"rotate(-10deg)"},{transform:"rotate(10deg)"},{transform:"rotate(0)"}], {duration:350});
+  if (S.taps < 3) { say(S.taps === 1 ? "Crack! Keep going..." : "Almost there! One more!"); drawPet(); save(); return; }
+  S.hatched = true; S.name = pick(NAMES); S.born = Date.now(); S.last = Date.now();
+  S.full = 70; S.love = 90; S.fun = 75; S.energy = 85;
+  save(); render(); express("happy", 2400); hearts(5); flap();
+  say(`Hoo! Hi! I'm ${S.name}! Are you my person? I think you're my person.`);
+}
+function pet() {
+  if (!S.hatched) return hatch();
+  if (S.asleep) { say("Zzz... (it snuggles closer in its sleep)"); return; }
+  S.love = clamp(S.love + 9); S.fun = clamp(S.fun + 2);
+  $("owlbody")?.classList.add("wiggle"); setTimeout(() => $("owlbody")?.classList.remove("wiggle"), 600);
+  express("happy"); hearts(); flap(); say(pick(LINES.pet)); save(); render();
+}
+function feed(s) {
+  closeSheet();
+  if (S.full > 92) { express("open"); say(pick(LINES.full)); return; }
+  S.full = clamp(S.full + s.full); S.love = clamp(S.love + (s.love||0)); S.fun = clamp(S.fun + (s.fun||0)); S.energy = clamp(S.energy + (s.energy||0));
+  express("happy"); flap(); say(s.say); save(); render();
+}
+function toggleSleep() {
+  closeSheet();
+  S.asleep = !S.asleep;
+  if (S.asleep) say(S.love < 50 ? "Will you be here when I wake up? ...okay. Night night." : "Night night. Thank you for today.");
+  else { express("happy", 2000); say(S.energy > 70 ? "Good morning! I dreamed about you." : "Five more minutes... okay, I'm up. Hi!"); }
+  save(); render();
+}
+function setOutfit(o) {
+  S.outfit = o.id; save(); drawPet(); express("happy"); flap();
+  say(o.id === "none" ? "Free as a feather!" : `Do I look cute in my ${o.name.toLowerCase()}? Be honest. Actually, just say yes.`);
+  document.querySelectorAll("#outfits .chip").forEach(c => c.classList.toggle("sel", c.dataset.id === S.outfit));
+}
+
+/* sheets */
+let sheet = null;
+function closeSheet() { if (sheet) { sheet.remove(); sheet = null; } }
+function openSheet(title, items, onPick, selId, gridId) {
+  closeSheet();
+  sheet = document.createElement("div"); sheet.className = "sheet"; sheet.setAttribute("role", "dialog"); sheet.setAttribute("aria-label", title);
+  sheet.innerHTML = `<div class="head"><h2>${title}</h2><button class="close" type="button">Close</button></div><div class="grid2" id="${gridId}"></div>`;
+  const grid = sheet.querySelector(".grid2");
+  items.forEach(it => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip" + (it.id === selId ? " sel" : ""); b.dataset.id = it.id;
+    b.innerHTML = `<b>${it.name}</b><small>${it.note}</small>`; b.onclick = () => onPick(it); grid.appendChild(b);
+  });
+  sheet.querySelector(".close").onclick = closeSheet;
+  $("device").appendChild(sheet);
+  grid.querySelector("button").focus();
+}
+
+/* mini-game: catch falling stars */
+let playing = false;
+function play() {
+  if (playing) return;
+  closeSheet();
+  if (S.energy < 15) { express("sad"); say("I'm too sleepy to play... tuck me in first?"); return; }
+  playing = true; let score = 0, left = 20;
+  const g = document.createElement("div"); g.className = "game";
+  g.innerHTML = `<div class="gamehud"><span id="gs">Stars 0</span><span id="gt">0:20</span></div>`;
+  $("scene").appendChild(g);
+  $("bubble").hidden = true; express("happy", 20000); flap();
+  const W = () => $("scene").clientWidth, H = () => $("scene").clientHeight;
+  const spawn = setInterval(() => {
+    const s = document.createElement("button"); s.type = "button"; s.className = "star"; s.setAttribute("aria-label","Catch star");
+    s.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.2 6.8.8-5 4.6 1.3 6.7L12 17l-6 3.3 1.3-6.7-5-4.6 6.8-.8z" fill="var(--butter)" stroke="var(--butter-deep)" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+    s.style.left = (10 + Math.random() * (W() - 60)) + "px";
+    g.appendChild(s);
+    const anim = s.animate([{ transform:"translateY(0) rotate(0)" }, { transform:`translateY(${H() + 60}px) rotate(${Math.random()>.5?200:-200}deg)` }], { duration: 2200 + Math.random()*1400, easing:"linear" });
+    anim.onfinish = () => s.remove();
+    s.onpointerdown = (e) => {
+      e.preventDefault(); score++; $("gs").textContent = "Stars " + score;
+      const r = s.getBoundingClientRect(), sc = $("scene").getBoundingClientRect();
+      floatUp(`<span style="color:var(--butter-deep)">+1</span>`, r.left - sc.left + 20, r.top - sc.top);
+      s.remove();
+    };
+  }, 520);
+  const tick = setInterval(() => {
+    left--; $("gt").textContent = "0:" + String(left).padStart(2, "0");
+    if (left <= 0) {
+      clearInterval(spawn); clearInterval(tick); g.remove(); playing = false;
+      S.fun = clamp(S.fun + Math.min(45, 10 + score * 2)); S.love = clamp(S.love + 5);
+      S.energy = clamp(S.energy - 10); S.full = clamp(S.full - 6);
+      express("happy"); hearts(4); flap();
+      say(score >= 15 ? `${score} stars! You're the best star-catcher in the whole sky!` : score >= 6 ? `We caught ${score} stars together! Again sometime?` : `${score} stars, but the best part was playing with you.`);
+      save(); render();
+    }
+  }, 1000);
+}
+
+/* ---------- wiring ---------- */
+$("pet").onclick = pet;
+$("a-pet").onclick = pet;
+$("a-feed").onclick = () => openSheet("Snack time", SNACKS, feed, null, "snacks");
+$("a-dress").onclick = () => openSheet("Wardrobe", OUTFITS, setOutfit, S.outfit, "outfits");
+$("a-play").onclick = play;
+$("a-sleep").onclick = toggleSleep;
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+/* stars in the night sky */
+(() => { const st = $("stars"); for (let i = 0; i < 22; i++) { const s = document.createElement("i"); s.style.left = Math.random()*96 + "%"; s.style.top = Math.random()*55 + "%"; s.style.animationDelay = (Math.random()*2.4) + "s"; st.appendChild(s); } })();
+
+/* zzz while sleeping, chatter and blinking while awake */
+setInterval(() => {
+  if (!S.asleep || playing) return;
+  const z = document.createElement("div"); z.className = "zzz"; z.textContent = "z";
+  const r = $("pet").getBoundingClientRect(), sc = $("scene").getBoundingClientRect();
+  z.style.left = (r.right - sc.left - r.width * 0.25) + "px"; z.style.top = (r.top - sc.top + r.height * 0.2) + "px";
+  $("scene").appendChild(z);
+  z.animate([{ transform:"translate(0,0) scale(.6)", opacity:1 }, { transform:"translate(26px,-60px) scale(1.2)", opacity:0 }], { duration: 2200 }).onfinish = () => z.remove();
+}, 1300);
+setInterval(() => {
+  if (expression || S.asleep || !S.hatched) return;
+  document.querySelectorAll(".blink").forEach(b => b.animate([{ transform:"scaleY(1)" }, { transform:"scaleY(.1)" }, { transform:"scaleY(1)" }], { duration: 180 }));
+}, 3800);
+function chatter() {
+  if (!S.hatched || S.asleep || playing) return;
+  const low = Math.min(S.full, S.love, S.fun, S.energy);
+  let pool = LINES.idle;
+  if (low < 35) pool = S.love === low ? LINES.lonely : S.full === low ? LINES.hungry : S.energy === low ? LINES.tired : LINES.bored;
+  say(pick(pool));
+}
+setInterval(() => { decay(Date.now()); save(); render(); }, 15000);
+setInterval(chatter, 22000);
+
+/* boot: catch up on time away */
+const away = decay(Date.now());
+render(); save();
+if (S.hatched) {
+  if (S.asleep) say("Zzz... (it's still dreaming. Tap Wake up when you're ready.)");
+  else if (away > 0.75) { say(pick(LINES.back)); express("happy", 2200); setTimeout(() => hearts(4), 300); }
+  else chatter();
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible" || !S.hatched) return;
+  const h = decay(Date.now()); render(); save();
+  if (h > 0.75 && !S.asleep) { say(pick(LINES.back)); express("happy", 2000); hearts(3); }
+});
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
